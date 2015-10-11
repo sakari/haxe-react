@@ -7,6 +7,6 @@ Little something to maybe do react uis using Haxe
 
 ## usage
 
-Requres node and haxe
+Building requires node and haxe. Testing requires Python for running the SimpleHTTPServer.
 
     make

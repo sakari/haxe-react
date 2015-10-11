@@ -1,5 +1,6 @@
 
 all: haxe js
+	python -m SimpleHTTPServer
 
 haxe: setup
 	haxe -js build/main-javascript.js -main Main -cp src -D js-flatten -dce std -debug -D source-map-content
