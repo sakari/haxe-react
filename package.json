@@ -1,0 +1,14 @@
+{
+  "name": "haxe-react-test",
+  "version": "0.1.0",
+  "author": "sakariij@gmail.com",
+  "description": "haxe react test",
+  "dependencies": {
+    "browserify": "^11.2.0",
+    "react": "^0.14.0",
+    "react-dom": "^0.14.0"
+  },
+  "engines": {
+    "node": ">= 0.12.7"
+  }
+}
