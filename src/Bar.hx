@@ -27,6 +27,10 @@ class Bar extends Component<{text : String}>
     return { count: props.text.length };
   }
 
+  override public function shouldComponentUpdate(nextProps, nextState) {
+    return (nextProps.text == "aa" && nextState.count == 1);
+  }
+
   override public function render() {
     return Dom.div({},[
                        sub({ key: 1, count: 10}),
