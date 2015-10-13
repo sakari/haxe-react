@@ -1,0 +1,11 @@
+{
+  "name": "haxe-react",
+  "url" : "https://github.com/sakari/haxe-react/",
+  "license": "MIT",
+  "tags": ["react", "ui", "js"],
+  "description": "typesafe react bindings for haxe. `require`s react 0.14",
+  "version": "1.0.0",
+  "releasenote": "zap",
+  "contributors": ["sakari"],
+  "dependencies": {}
+}
