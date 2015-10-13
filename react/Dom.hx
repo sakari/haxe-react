@@ -1,6 +1,170 @@
 package react;
 import react.React.Element;
 import react.React.Children;
+import js.html.Event;
+
+typedef SyntheticEvent = {
+ bubbles: Bool,
+ cancelable: Bool,
+ currentTarget: js.html.Element,
+ defaultPrevented: Bool,
+ eventPhase: Int,
+ isTrusted: Bool,
+ nativeEvent: js.html.Event,
+ preventDefault: Void -> Void,
+ isDefaultPrevented: Void -> Bool,
+ stopPropagation: Void -> Void,
+ isPropagationStopped: Void -> Bool,
+ target: js.html.Element,
+ timeStamp: Int,
+ type: String,
+ persist: Void -> Void
+};
+
+typedef ClipboardEvent = {> SyntheticEvent,
+                          clipboardData: js.html.DataTransfer
+};
+
+typedef CompositionEvent = {> SyntheticEvent,
+                            data: String
+};
+
+typedef KeyboardEvent = {> SyntheticEvent,
+                         altKey: Bool,
+                         charCode: Int,
+                         ctrlKey: Bool,
+                         getModifierState: Int -> Bool,
+                         key: String,
+                         keyCode: Int,
+                         locale: String,
+                         location: Int,
+                         metaKey: Bool,
+                         repeat: Bool,
+                         shiftKey: Bool,
+                         which: Int
+};
+
+typedef FocusEvent = {> SyntheticEvent,
+                      relatedTarget : js.html.Element
+};
+
+typedef MouseEvent = {> SyntheticEvent,
+                      altKey: Bool,
+                      button: Int,
+                      buttons: Int,
+                      clientX: Float,
+                      clientY: Float,
+                      ctrlKey: Bool,
+                      getModifierState: Int -> Bool,
+                      metaKey: Bool,
+                      pageX: Float,
+                      pageY: Float,
+                      relatedTarget: js.html.Element,
+                      screenX: Float,
+                      screenY: Float,
+                      shiftKey: Bool
+};
+
+typedef TouchEvent = {>SyntheticEvent,
+                      altKey: Bool,
+                      changedTouches: js.html.TouchList,
+                      ctrlKey: Bool,
+                      getModifierState: Int -> Bool,
+                      metaKey: Bool,
+                      shiftKey: Bool,
+                      targetTouches: js.html.TouchList,
+                      touches: js.html.TouchList
+};
+
+typedef UIEvent = {> SyntheticEvent,
+                   detail: Int,
+                   view: Dynamic
+};
+
+typedef WheelEvent = {> SyntheticEvent,
+                      deltaMode: Int,
+                      deltaX: Float,
+                      deltaY: Float,
+                      deltaZ: Float,
+};
+
+typedef EventAttr = { ?onCopy : ClipboardEvent -> Void,
+                      ?onCut : ClipboardEvent -> Void,
+                      ?onPast : ClipboardEvent -> Void,
+
+                      ?onCompositionEnd : CompositionEvent -> Void,
+                      ?onCompositionStart : CompositionEvent -> Void,
+                      ?onCompositionUpdate : CompositionEvent -> Void,
+
+                      ?onKeyDown : KeyboardEvent -> Void,
+                      ?onKeyPress : KeyboardEvent -> Void,
+                      ?onKeyUp : KeyboardEvent -> Void,
+
+                      ?onFocus : FocusEvent -> Void,
+                      ?onBlur : FocusEvent -> Void,
+
+                      ?onChange : SyntheticEvent -> Void,
+                      ?onInput : SyntheticEvent -> Void,
+                      ?onSubmit : SyntheticEvent -> Void,
+
+                      ?onClick : MouseEvent -> Void,
+                      ?onContextMenu : MouseEvent -> Void,
+                      ?onDoubleClick : MouseEvent -> Void,
+                      ?onDrag : MouseEvent -> Void,
+                      ?onDragEnd : MouseEvent -> Void,
+                      ?onDragEnter : MouseEvent -> Void,
+                      ?onDragExit : MouseEvent -> Void,
+                      ?onDragLeave : MouseEvent -> Void,
+                      ?onDragOver : MouseEvent -> Void,
+                      ?onDragStart : MouseEvent -> Void,
+                      ?onDrop : MouseEvent -> Void,
+                      ?onMouseDown : MouseEvent -> Void,
+                      ?onMouseEnter : MouseEvent -> Void,
+                      ?onMouseLeave : MouseEvent -> Void,
+                      ?onMouseMove : MouseEvent -> Void,
+                      ?onMouseOut : MouseEvent -> Void,
+                      ?onMouseOver : MouseEvent -> Void,
+                      ?onMouseUp : MouseEvent -> Void,
+
+                      ?onSelect : SyntheticEvent -> Void,
+
+                      ?onTouchCancel : TouchEvent -> Void,
+                      ?onTouchEnd : TouchEvent -> Void,
+                      ?onTouchMove : TouchEvent -> Void,
+                      ?onTouchStart : TouchEvent -> Void,
+
+                      ?onScroll : UIEvent -> Void,
+
+                      ?onWheel : WheelEvent -> Void,
+
+                      ?onAbort : SyntheticEvent -> Void,
+                      ?onCanPlay : SyntheticEvent -> Void,
+                      ?onCanPlayThrough : SyntheticEvent -> Void,
+                      ?onDurationChange : SyntheticEvent -> Void,
+                      ?onEmptied : SyntheticEvent -> Void,
+                      ?onEncrypted : SyntheticEvent -> Void,
+                      ?onEnded : SyntheticEvent -> Void,
+                      ?onError : SyntheticEvent -> Void,
+                      ?onLoadedData : SyntheticEvent -> Void,
+                      ?onLoadedMetadata : SyntheticEvent -> Void,
+                      ?onLoadStart : SyntheticEvent -> Void,
+                      ?onPause : SyntheticEvent -> Void,
+                      ?onPlay : SyntheticEvent -> Void,
+                      ?onPlaying : SyntheticEvent -> Void,
+                      ?onProgress : SyntheticEvent -> Void,
+                      ?onRateChange : SyntheticEvent -> Void,
+                      ?onSeeked : SyntheticEvent -> Void,
+                      ?onSeeking : SyntheticEvent -> Void,
+                      ?onStalled : SyntheticEvent -> Void,
+                      ?onSuspend : SyntheticEvent -> Void,
+                      ?onTimeUpdate : SyntheticEvent -> Void,
+                      ?onVolumeChange : SyntheticEvent -> Void,
+                      ?onWaiting : SyntheticEvent -> Void,
+
+                      ?onLoad : SyntheticEvent -> Void,
+                      //onError : SyntheticEvent -> Void
+};
+
 
 typedef HtmlAttr = {
  ?accept: Dynamic, ?acceptCharset: Dynamic, ?accessKey: Dynamic, ?action:
@@ -37,7 +201,7 @@ typedef HtmlAttr = {
  ?width: Dynamic, ?wmode: Dynamic, ?wrap: Dynamic
 };
 
-typedef ReactHtmlAttr = {> HtmlAttr, ?autoCapitalize: Dynamic,
+typedef ReactHtmlAttr = {> HtmlAttr, > EventAttr, ?autoCapitalize: Dynamic,
 ?autoCorrect: Dynamic, ?property: Dynamic, ?itemProp: Dynamic, ?itemScope:
 Dynamic, ?itemType: Dynamic, ?itemID: Dynamic, ?unselectable: Dynamic,
 ?results: Dynamic, ?autosave: Dynamic, ?key: Dynamic,
