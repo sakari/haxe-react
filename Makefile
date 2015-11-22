@@ -3,7 +3,7 @@ all: haxe js
 	python -m SimpleHTTPServer
 
 haxe: setup
-	haxe -js build/main-javascript.js -main Main -cp examples -D js-flatten -dce std -debug -D source-map-content
+	haxe compile.hxml
 
 js: install
 	node_modules/.bin/browserify --outfile build/requires.js requires.js --standalone require

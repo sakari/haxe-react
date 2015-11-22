@@ -1,0 +1,7 @@
+-js build/main-javascript.js 
+-main Main 
+-cp examples 
+-D js-flatten 
+-dce std 
+-debug 
+-D source-map-content
