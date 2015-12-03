@@ -1,4 +1,3 @@
-package;
 import react.Component;
 import react.Dom;
 import react.React;
@@ -9,8 +8,10 @@ class Sub extends Component<{key: Int, count: Int}>
     super(props);
   }
 
+  public static var sub = React.createFactory(Sub);
+
   override public function render() {
-    return Dom.div({}, [Std.string(this.props.count)]);
+    return Dom.div({}, children());
   }
 }
 
@@ -21,7 +22,6 @@ class Bar extends Component<{text : String}>
     super(props);
   }
   var count : Int;
-  static var sub = React.createFactory(Sub);
 
   override public function initialState(props) {
     return { count: props.text.length };
@@ -33,8 +33,8 @@ class Bar extends Component<{text : String}>
 
   override public function render() {
     return Dom.div({},[
-                       sub({ key: 1, count: 10}),
-                       sub({ key: 2, count: this.count })
+                       Sub.sub({ key: 1, count: 10}, [Dom.div({}, "aa")]),
+                       Sub.sub({ key: 2, count: this.count })
                        ]);
   }
 }

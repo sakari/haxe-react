@@ -26,6 +26,16 @@ class Component<Props> extends NativeComponent<Props> {
     untyped this.state = initialState(props);
   }
 
+  public function children() : Array<React.Element> {
+    var cs : Dynamic= untyped this.props.children;
+    if(cs == null)
+      return [];
+    else if(untyped Array.isArray(cs))
+      return cs;
+    else
+      return [cs];
+  }
+
   public function initialState(props : Props) : Dynamic {
     return {};
   }
