@@ -8,8 +8,6 @@ class Sub extends Component<{key: Int, count: Int}>
     super(props);
   }
 
-  public static var sub = React.createFactory(Sub);
-
   override public function render() {
     return Dom.div({}, children());
   }
@@ -33,8 +31,8 @@ class Bar extends Component<{text : String}>
 
   override public function render() {
     return Dom.div({},[
-                       Sub.sub({ key: 1, count: 10}, [Dom.div({}, "aa")]),
-                       Sub.sub({ key: 2, count: this.count })
+                       Sub.factory({ key: 1, count: 10}, [Dom.div({}, "aa")]),
+                       Sub.factory({ key: 2, count: this.count })
                        ]);
   }
 }

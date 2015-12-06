@@ -106,6 +106,15 @@ class ComponentBuilderMacro {
       Context.error('Unneeded `initialState` for stateless component class ${className}', getInitializer.pos);
   }
 
+  static function addFactoryMethod(className: String, fields: Array<Field>) {
+    fields.push(
+      { name: "factory",
+        access: [AStatic, APublic],
+        pos: Context.currentPos() ,
+        kind: FVar(null, macro React.createFactory($i{className}))
+      });
+  }
+
   public static function build(): Array<Field> {
     var className = Context.getLocalClass().get().name;
     checkReservedIdentifiers(className);
@@ -121,6 +130,7 @@ class ComponentBuilderMacro {
 
     patchInitializer(Context.getLocalClass().get(), fields, stateType);
     patchMagicStates(Context.getLocalClass().get(), fields, stateType);
+    addFactoryMethod(className, fields);
     return fields;
   }
 
