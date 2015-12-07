@@ -28,6 +28,17 @@ class Foo extends Component<text : String, key: String> {
     return Dom.div({}, ['state ${length}', 'model state ${model.someField}']);
   }
 }
+
+class Bar extends Component<{}> {
+  function render() {
+
+    // a static factory method named after the component class with the first letter lowercased 
+    // is added automatically to each component class
+
+    return Foo.foo({text: 'abc', key: 'xxx'});
+  }
+}
+
 ```
 
 See `examples/` for details.

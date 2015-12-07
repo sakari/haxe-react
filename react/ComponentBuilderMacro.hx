@@ -203,8 +203,10 @@ class ComponentBuilderMacro {
   }
 
   static function addFactoryMethod(className: String, fields: Array<Field>) {
+    var name = className.substr(0, 1).toLowerCase() + className.substr(1, className.length);
+    errorIfFieldDefined(name, fields);
     fields.push(
-      { name: "factory",
+      { name: name,
         access: [AStatic, APublic],
         pos: Context.currentPos() ,
         kind: FVar(null, macro React.createFactory($i{className}))
