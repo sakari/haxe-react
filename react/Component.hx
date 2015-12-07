@@ -23,7 +23,22 @@ extern class NativeComponent<Props> {
 class Component<Props> extends NativeComponent<Props> {
   public function new(props : Props) {
     super(props);
-    untyped this.state = initialState(props);
+    initModels(props);
+    untyped this.state = initialState();
+  }
+
+  override public function componentDidMount() {
+    listenModels();
+  }
+
+  override public function componentWillUnmount() {
+    unlistenModels();
+  }
+
+  override function componentWillReceiveProps(next: Props) {
+    unlistenModels();
+    initModels(next);
+    listenModels();
   }
 
   public function children() : Array<React.Element> {
@@ -36,7 +51,8 @@ class Component<Props> extends NativeComponent<Props> {
       return [cs];
   }
 
-  public function initialState(props : Props) : Dynamic {
-    return {};
-  }
+  public function initModels(props: Props) {}
+  public function unlistenModels() {}
+  public function listenModels(){}
+  public function initialState() : Dynamic { return {}; }
 }

@@ -2,37 +2,82 @@ import react.Component;
 import react.Dom;
 import react.React;
 
-class Sub extends Component<{key: Int, count: Int}>
+class Model {
+  var listeners : Array<Void -> Void> = [];
+  var increment: Int;
+  var timer : Int;
+
+  public function new(increment) {
+    trace('creating a model');
+    this.increment = increment;
+    timer = js.Browser.window.setInterval(function() { 
+        trace('incrementing state');
+        this.state += this.increment; 
+        }, 1000);
+  }
+  public var state(default, set) = 1;
+  public function set_state(newState): Int {
+    this.state = newState;
+    for(l in listeners)
+      l();
+    return this.state;
+  }
+
+
+  public function listen(cb: Void -> Void): Model {
+    trace('listen called');
+    this.listeners.push(cb);
+    return this;
+  }
+
+  public function unlisten(cb: Void -> Void): Model {
+    this.listeners.remove(cb);
+    trace('listeners after unlisten ${listeners}');
+    js.Browser.window.clearInterval(timer);
+    return this;
+  }
+}
+
+class Sub extends Component<{key: Int, increment: Int}>
 {
-  private function new(props) {
+  @model var model : Model = new Model(props.increment);
+
+  public function new(props) {
+    trace('component initialising');
     super(props);
+    trace('component initialised');
+  }
+
+  override public function componentWillUnmount() {
+    trace('component unmounting');
+    super.componentWillUnmount();
+    trace('component unmounted');
   }
 
   override public function render() {
-    return Dom.div({}, children());
+    return Dom.div({}, [Dom.div({},'state ${model.state} increment ${props.increment}')].concat(children()));
   }
 }
 
 
 class Bar extends Component<{text : String}>
 {
-  private function new(props) {
-    super(props);
-  }
-  var count : Int;
-
-  override public function initialState(props) {
-    return { count: props.text.length };
+  @state var increment : Int = props.text.length;
+  @state var key : Int = 1;
+  
+  function moreIncrement(e) {
+    increment += 1; 
   }
 
-  override public function shouldComponentUpdate(nextProps, nextState) {
-    return (nextProps.text == "aa" && nextState.count == 1);
+  function newKey(e) {
+    key += 1;
   }
 
   override public function render() {
     return Dom.div({},[
-                       Sub.factory({ key: 1, count: 10}, [Dom.div({}, "aa")]),
-                       Sub.factory({ key: 2, count: this.count })
+                       Sub.factory({ key: key, increment: increment}), 
+                       Dom.button({ onClick: moreIncrement }, ["incr+"]),
+                       Dom.button({ onClick: newKey }, ["newkey"])
                        ]);
   }
 }

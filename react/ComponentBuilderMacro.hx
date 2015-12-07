@@ -2,6 +2,7 @@ package react;
 import haxe.macro.Expr;
 import haxe.macro.Context;
 import haxe.macro.Type.ClassType;
+import haxe.ds.Option;
 
 class ComponentBuilderMacro {
   #if macro
@@ -23,13 +24,38 @@ class ComponentBuilderMacro {
     return stateType;
   }
 
-  static function getStateMembers(): Array<{field: Field, type: Null<ComplexType>}> {
+  static function getMeta(f, name) {
+    if(f.meta == null)
+      return None;
+    var tags : Array<MetadataEntry> = f.meta.filter(function(meta) { return meta.name == name; });
+    if(tags.length > 1)
+      Context.error('More than one instance of `${name}` macro', f.pos);
+    if(tags.length == 1)
+      return Some(tags[0]);
+    return None;
+  }
+
+  static function isModelField(f) {
+    return switch(getMeta(f, "model")) {
+      case None: false;
+      case Some(_): true;
+    }
+  }
+
+  static function isStateField(f) {
+    return switch(getMeta(f, "state")) {
+      case None: false;
+      case Some(_): true;
+    };
+  }
+
+  static function getStateMembers(): Array<{field: Field, expr: Expr, type: Null<ComplexType>}> {
     var members = [];
     for(f in Context.getBuildFields()) {
-      if(f.access.indexOf(AStatic) < 0) {
+      if(isStateField(f)) {
         switch(f.kind) {
-        case FVar(t, _):
-          members.push({field: f, type: t});
+        case FVar(t, e):
+          members.push({field: f, type: t, expr: e});
         default:
         }
       }
@@ -84,26 +110,96 @@ class ComponentBuilderMacro {
     }
   }
 
-  static function patchInitializer(localClass: haxe.macro.ClassType, fields: Array<Field>, stateType) {
-    var className = localClass.name;
-    var getInitializer;
+  static function getFieldByName(name, fields:Array<Field>) {
     for(f in fields) {
-      if(f.name == "initialState") {
-        switch(f.kind) {
-        case FFun(fun):
-          if(fun.ret != null)
-            Context.error('Found explicitly given type for `initialState` in component class ${className}. Please remove it as it will be set automagically based on the class fields.', f.pos);
-          fun.ret = TAnonymous(stateType);
-          getInitializer = f;
-        default:
-        }
-      }
+      if(f.name == name)
+        return Some(f);
     }
-    if(getInitializer == null && stateType.length > 0)
-      Context.error('Missing `initialState` for stateful component class ${className}',
-                    localClass.pos);
-    if(getInitializer != null && stateType.length == 0)
-      Context.error('Unneeded `initialState` for stateless component class ${className}', getInitializer.pos);
+    return None;
+  }
+  static function errorIfFieldDefined(name, fields) {
+    switch(getFieldByName(name, fields)) {
+      case Some(f):
+        Context.error('Found `${name}` in component class ${Context.getLocalClass().get().name}. This is an internal method for magic', f.pos);
+      default:
+    }
+  }
+
+  static function fvarInitialiser(field: Field) {
+    return switch(field.kind) {
+      case FVar(_t, e): 
+        if(e == null)
+          Context.error('Model field `${field.name}` must have an initialiser in component class ${Context.getLocalClass().get().name}', field.pos);
+        e;
+      default: 
+        Context.error('Model field `${field.name}` must be a var in component class ${Context.getLocalClass().get().name}', field.pos);
+        null;
+    };
+  }
+
+  static function createMagicMethod(name, fields: Array<Field>, expr: Expr, args: Array<FunctionArg>, ret: Null<ComplexType>) {
+    errorIfFieldDefined(name, fields);
+    fields.push({
+      name: name,
+      access: [AOverride, APublic],
+      pos: Context.getLocalClass().get().pos,
+      kind:
+        FFun({
+          args: args,
+          expr: expr,
+          ret: null
+          })
+        });
+  }
+
+  static function createModelInitialiser(localClass: haxe.macro.ClassType, fields: Array<Field>) {
+    var fieldName = 'initModels';
+    var inits = fields.filter(isModelField).map(function(model) {
+          return macro $i{model.name} = ${fvarInitialiser(model)};
+        });
+    var args = [{
+      value: null,
+      type: null,
+      opt: null,
+      name: 'props'
+    }];
+    createMagicMethod(fieldName, fields, (macro $b{inits}), args, null);
+  }
+
+  static function createModelUnlistener(localClass: haxe.macro.ClassType, fields: Array<Field>) {
+    var fieldName = 'unlistenModels';
+    var unlisteners = fields.filter(isModelField).map(function(model) {
+        return macro $i{model.name}.unlisten(forceUpdate);
+        });
+    createMagicMethod(fieldName, fields, (macro $b{unlisteners}), [], null);
+  }
+
+  static function createModelListener(localClass: haxe.macro.ClassType, fields: Array<Field>) {
+    var fieldName = 'listenModels';
+    var listeners= fields.filter(isModelField).map(function(model) {
+          return macro $i{model.name}.listen(forceUpdate);
+        });
+    createMagicMethod(fieldName, fields, (macro $b{listeners}), [], null);
+  }
+
+  static function createStateInitialiser(localClass: haxe.macro.ClassType, fields: Array<Field>, stateType) {
+    var fieldName = 'initialState';
+    var stateFields = getStateMembers();
+    var set = { expr: EObjectDecl(stateFields.map(function(f) {return {field: f.field.name, expr: f.expr}})),
+                pos: localClass.pos
+    };
+    createMagicMethod(fieldName, fields, (macro return ${set}), [], TAnonymous(stateType));
+  }
+
+  static function removeInitialisers(fields: Array<Field>) {
+    for(field in fields) {
+      if(isModelField(field) || isStateField(field))
+        switch(field.kind) {
+          case FVar(t, e): field.kind = FVar(t, null);
+          case FProp(get, set, t, e): field.kind = FProp(get, set, t, null);
+          default: Context.error('Non var state or model field `${field.name}` in component class `${Context.getLocalClass().get().name}`', field.pos);
+        }
+    }
   }
 
   static function addFactoryMethod(className: String, fields: Array<Field>) {
@@ -128,9 +224,13 @@ class ComponentBuilderMacro {
       fields.push(createSetter(f.field, f.type));
     }
 
-    patchInitializer(Context.getLocalClass().get(), fields, stateType);
+    createStateInitialiser(Context.getLocalClass().get(), fields, stateType);
     patchMagicStates(Context.getLocalClass().get(), fields, stateType);
+    createModelListener(Context.getLocalClass().get(), fields);
+    createModelUnlistener(Context.getLocalClass().get(), fields);
+    createModelInitialiser(Context.getLocalClass().get(), fields);
     addFactoryMethod(className, fields);
+    removeInitialisers(fields);
     return fields;
   }
 

@@ -2,8 +2,35 @@
 
 Little something to do react uis using Haxe
 
-- typesafe props and state
-- instance variables proxy the react component state. So that the state variable is read using a getter and react `setState` is called on the instance variable setter.
+```
+class Foo extends Component<text : String, key: String> {
+
+  // members with @state are proxied to the react this.state property
+  // using setters and getters so that assigning to the member will 
+  // result in the react component state to be updated.
+  // The initialiser is called in the constructor so that e.g. `props` 
+  // is visible here
+
+  @state var length : Int = props.text.length;
+  
+  // members with @model are initialised always when new props are given
+  // to the component. The `Model` should have `listen` and `unlisten` methods
+  // which are called with the components `forceUpdate` method so that changes
+  // to the model can trigger a `render`. Unlisten is called when the component
+  // unmounts or when new props are received before setting the new Model.
+
+  @model var m : Model = Model.get(props.key);
+
+  // otherwise the haxe component more or less faithfully follows the api of the react
+  // component
+
+  function render() {
+    return Dom.div({}, ['state ${length}', 'model state ${model.someField}']);
+  }
+}
+```
+
+See `examples/` for details.
 
 ## Installing
 
